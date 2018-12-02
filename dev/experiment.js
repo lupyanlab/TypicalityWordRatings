@@ -101,7 +101,7 @@ export function runExperiment(
         <h5 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h5>
         <h1>How typical is this ${categoryNamesMap[category]}?</div>
         <div style="width:100%;">
-            <div style="width: 100%;;text-align:center;margin: auto;padding: 5em;">
+            <div style="width: 100%;;text-align:center;margin: auto;padding: 0em;">
                 <img src="${image}" alt="${image}" height="200px" align="middle" style="max-width:400px;width=50%;" />
             </div>
         </div>
