@@ -107,7 +107,7 @@ export function runExperiment(
         </div>
     `;
 
-      const choices = ["1", "2", "3", "4", "5"];
+      const choices = ["1 (Very typical)", "2", "3", "4", "5 (Very atypical)"];
 
       let circles = choices.map(choice => {
         return /*html*/ `
