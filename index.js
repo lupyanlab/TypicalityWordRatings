@@ -57,6 +57,18 @@ if (!fs.existsSync(path.join('./data'))) {
   fs.mkdirSync(path.join('./data'));
 }
 
+const categoryNamesMap = {};
+
+csv()
+.fromFile(path.join('category_names.csv'))
+.on('json', (jsonObj) => {
+  const { directory, name } = jsonObj;
+  categoryNamesMap[directory] = name;
+})
+.on('done', error => {
+  if (error) throw error;
+})
+
 if (fs.existsSync(categoriesCountDevPath)){
   // Read existing category counts if csv exists.
   csv()
@@ -171,7 +183,7 @@ app.post('/trials', function (req, res) {
     const csvFilePath = 'data/' + subjCode + '_data.csv';
     csv()
       .fromFile(csvFilePath)
-      .on('json', (jsonObj) => {completed.push(jsonObj.category)})
+      .on('json', (jsonObj) => {completed.push(jsonObj.image)})
       .on('done', (error) => {
         fs.readFile('trials/' + subjCode + '_trials.txt', 'utf8', function (err, data) {
           if (err) throw err;
@@ -179,11 +191,12 @@ app.post('/trials', function (req, res) {
           let subjCategories = data.split('\n').filter((c) => {return !completed.includes(c)});
           let subjImages = Object.assign({}, images[env]);
           for (let category in subjImages) {
-            subjImages[category] = _.shuffle(subjImages[category]).slice(0, numPics);
+            subjImages[category] = subjImages[category].filter(image => !completed.includes(image));
           }
+
           let questions = _.shuffle(fs.readFileSync('IRQ_questions.txt').toString().replace(/\r/g, '\n').split('\n')).filter((line) => {return line.replace(/ /g, '').length > 0 });
 
-          let trials = { categories: subjCategories, images: subjImages, questions: questions };
+          let trials = { categories: subjCategories, images: subjImages, questions: questions, categoryNamesMap };
           res.send({ success: true, trials: trials });
         });
       })
@@ -247,7 +260,7 @@ app.post('/trials', function (req, res) {
       subjImages[category] = _.shuffle(subjImages[category]).slice(0, numPics);
     }
     let questions = _.shuffle(fs.readFileSync('IRQ_questions.txt').toString().replace(/\r/g, '\n').split('\n')).filter((line) => { return line.replace(/ /g, '').length > 0 });
-    let trials = { categories: subjCategories, images: subjImages, questions: questions};
+    let trials = { categories: subjCategories, images: subjImages, questions: questions, categoryNamesMap};
 
     console.log(categoriesCount[env]);
     res.send({ success: true, trials: trials });

@@ -42,7 +42,7 @@ $(document).ready(function(){
                 jsPsych.pluginAPI.preloadImages(images, function(){}); 
                     
                 // $("#loading").remove();
-                runExperiment({categories, images: stimuli, questions: data.trials.questions, debriefing: data.trials.debriefing}, subjCode, workerId, assignmentId, hitId, FULLSCREEN, PORT);
+                runExperiment({categories, images: stimuli, questions: data.trials.questions, debriefing: data.trials.debriefing, categoryNamesMap: data.trials.categoryNamesMap}, subjCode, workerId, assignmentId, hitId, FULLSCREEN, PORT);
     
             }
         })

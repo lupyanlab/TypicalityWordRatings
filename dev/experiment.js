@@ -81,6 +81,8 @@ export function runExperiment(
 
   let trial_number = 1;
   let progress_number = 1;
+
+  const { categoryNamesMap } = trials;
   // Pushes each audio trial to timeline
   trials.categories.forEach(category => {
     trials.images[category].forEach(image => {
@@ -97,6 +99,7 @@ export function runExperiment(
 
       let stimulus = /*html*/ `
         <h5 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h5>
+        <h1>How typical is this ${categoryNamesMap[category]}?</div>
         <div style="width:100%;">
             <div style="width: 100%;;text-align:center;margin: auto;padding: 5em;">
                 <img src="${image}" alt="${image}" height="200px" align="middle" style="max-width:400px;width=50%;" />
