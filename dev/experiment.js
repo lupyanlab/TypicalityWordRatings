@@ -1,198 +1,265 @@
+import demographicsQuestions from "./demographics.js";
+
 // Function Call to Run the experiment
-function runExperiment(trials, subjCode, workerId, assignmentId, hitId) {
-    let timeline = [];
+export function runExperiment(
+  trials,
+  subjCode,
+  workerId,
+  assignmentId,
+  hitId,
+  FULLSCREEN,
+  PORT
+) {
+  let timeline = [];
 
-    // Data that is collected for jsPsych
-    let turkInfo = jsPsych.turk.turkInfo();
-    let participantID = makeid() + 'iTi' + makeid()
+  // Data that is collected for jsPsych
+  let turkInfo = jsPsych.turk.turkInfo();
+  let participantID = makeid() + "iTi" + makeid();
 
-    jsPsych.data.addProperties({
-        subject: participantID,
-        condition: 'explicit',
-        group: 'shuffled',
-        workerId: workerId,
-        assginementId: assignmentId,
-        hitId: hitId
-    });
+  jsPsych.data.addProperties({
+    subject: participantID,
+    condition: "explicit",
+    group: "shuffled",
+    workerId: workerId,
+    assginementId: assignmentId,
+    hitId: hitId
+  });
 
-    // sample function that might be used to check if a subject has given
-    // consent to participate.
-    var check_consent = function (elem) {
-        if ($('#consent_checkbox').is(':checked')) {
-            return true;
-        }
-        else {
-            alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
-            return false;
-        }
-        return false;
-    };
+  // sample function that might be used to check if a subject has given
+  // consent to participate.
+  var check_consent = function(elem) {
+    if ($("#consent_checkbox").is(":checked")) {
+      return true;
+    } else {
+      alert(
+        "If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'"
+      );
+      return false;
+    }
+    return false;
+  };
 
+  // declare the block.
+  var consent = {
+    type: "external-html",
+    url: "./consent.html",
+    cont_btn: "start",
+    check_fn: check_consent
+  };
 
-    // declare the block.
-    var consent = {
-        type: 'html',
-        url: "./consent.html",
-        cont_btn: "start",
-        check_fn: check_consent
-    };
+  timeline.push(consent);
 
-    timeline.push(consent);
+  // let welcome_block = {
+  //     type: "text",
+  //     cont_key: ' ',
+  //     text: `<h1>Naming Categories</h1>
+  //     <p class="lead">Welcome to the experiment. Thank you for participating! Press SPACE to begin.</p>`
+  // };
 
-    // let welcome_block = {
-    //     type: "text",
-    //     cont_key: ' ',
-    //     text: `<h1>Naming Categories</h1>
-    //     <p class="lead">Welcome to the experiment. Thank you for participating! Press SPACE to begin.</p>`
-    // };
+  // timeline.push(welcome_block);
 
-    // timeline.push(welcome_block);
+  let continue_space =
+    "<div class='right small'>(press SPACE to continue)</div>";
 
-    let continue_space = "<div class='right small'>(press SPACE to continue)</div>";
-
-    let instructions = {
-        type: "instructions",
-        key_forward: ' ',
-        key_backward: 8,
-        pages: [
-            `<p class="lead">In this HIT, you will see groups of various images. Your job is to type out a name that applies to all the images. For example, if you see a bunch of dogs, you should write 'dogs'. You should use as few words as possible in your response. For example, "dolls" instead of "a bunch of dolls".
+  let instructions = {
+    type: "instructions",
+    key_forward: "space",
+    key_backward: "backspace",
+    pages: [
+      /*html*/ `<p class="lead">In this HIT, you will see groups of various images. Your job is to type out a name that applies to all the images. For example, if you see a bunch of dogs, you should write 'dogs'. You should use as few words as possible in your response. For example, "dolls" instead of "a bunch of dolls".
             </p> <p class="lead">Use the your keyboard and click on the text box to type in your answer. Then, indicate how familiar you are with the items shown, and hit 'submit'.
-            </p> ${continue_space}`,
-        ]
-    };
+            </p> ${continue_space}`
+    ]
+  };
 
-    timeline.push(instructions);
+  timeline.push(instructions);
+  let num_trials = trials.categories.reduce(
+    (a, category) => a + trials.images[category].length,
+    0
+  );
+  document.trials = trials;
 
-    let trial_number = 1;
-    let num_trials = trials.categories.length;
-    document.trials = trials;
+  let trial_number = 1;
+  let progress_number = 1;
+  // Pushes each audio trial to timeline
+  trials.categories.forEach(category => {
+    trials.images[category].forEach(image => {
+      let response = {
+        subjCode: subjCode,
+        participantID: participantID,
+        category: category,
+        image: image,
+        expTimer: -1,
+        response: -1,
+        trial_number: trial_number,
+        rt: -1
+      };
 
-    // Pushes each audio trial to timeline
-    for (let category of trials.categories) {
-
-        // Empty Response Data to be sent to be collected
-        let response = {
-            subjCode: subjCode,
-            participantID: participantID,
-            category: category,
-            familiarity: -1,            
-            numPics: trials.images[category].length,
-            images: trials.images[category],
-            expTimer: -1,
-            response: -1,
-            trial_number: trial_number,
-            rt: -1,
-        }
-
-        let imagesHTML = '';
-        for (let img of trials.images[category]) {
-            imagesHTML += `<img src="${img}" style="max-width:16%;"/>`
-        }
-
-        let preamble = `
-        <canvas width="800px" height="25px" id="bar"></canvas>
-        <div class="progress progress-striped active">
-            <div class="progress-bar progress-bar-success" style="width: ${trial_number / num_trials * 100}%;"></div>
+      let stimulus = /*html*/ `
+        <h5 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h5>
+        <div style="width:100%;">
+            <div style="width: 100%;;text-align:center;margin: auto;padding: 5em;">
+                <img src="${image}" alt="${image}" height="200px" align="middle" style="max-width:400px;width=50%;" />
+            </div>
         </div>
-        <h6 style="text-align:center;">Trial ${trial_number} of ${num_trials}</h6>
-        `+ imagesHTML;
+    `;
 
-        let questions = ['<h4>What are these items called?</h4>'];
+      const choices = ["1", "2", "3", "4", "5"];
 
-        // Picture Trial
-        let wordTrial = {
-            type: 'survey-text',
-            preamble: preamble,
-            questions: questions,
+      let circles = choices.map(choice => {
+        return /*html*/ `
+            <div class="choice">
+                <div class="choice-circle empty-circle"></div>
+                <div class="text">${choice}</div>
+            </div>
+        `;
+      });
 
-            on_finish: function (data) {
-                console.log(data.responses);
-                response.response = data.responses.Q0;
-                response.rt = data.rt;
-                response.expTimer = data.time_elapsed / 1000;
-		response.familiarity = data.familiarity;
+      let prompt = /*html*/ `
+            <div class="bar">
+                ${circles.join("")}
+            </div>
+        `;
 
-                // POST response data to server
-                $.ajax({
-                    url: 'http://' + document.domain + ':' + PORT + '/data',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(response),
-                    success: function () {
-                        console.log(response);
-                    }
-                })
+      // Picture Trial
+      let pictureTrial = {
+        type: "html-keyboard-response",
+        choices: choices.map((choice, index) => {
+          return `${index + 1}`;
+        }),
+
+        stimulus: stimulus,
+
+        prompt: function() {
+          return prompt;
+        },
+
+        on_finish: function(data) {
+          response.response = String.fromCharCode(data.key_press);
+          response.choice = choices[Number(response.response) - 1];
+          response.rt = data.rt;
+          response.expTimer = data.time_elapsed / 1000;
+
+          // POST response data to server
+          $.ajax({
+            url: "http://" + document.domain + ":" + PORT + "/data",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(response),
+            success: function() {
+              console.log(response);
             }
+          });
         }
-        timeline.push(wordTrial);
-        trial_number++;
-    };
+      };
+      timeline.push(pictureTrial);
 
+      // let subject view their choice
+      let breakTrial = {
+        type: "html-keyboard-response",
+        trial_duration: 500,
+        response_ends_trial: false,
 
-    let questionsInstructions = {
-        type: "instructions",
-        key_forward: ' ',
-        key_backward: 8,
-        pages: [
-            `<p class="lead">Thank you! We'll now ask a few demographic questions and you'll be done!
-            </p> ${continue_space}`,
-        ]
-    };
-    timeline.push(questionsInstructions);
+        stimulus: stimulus,
 
-
-    window.questions = trials.questions;    // allow surveyjs to access questions
-
-
-    let demographicsTrial = {
-        type: 'html',
-        url: "./demographics/demographics.html",
-        cont_btn: "demographics-cmplt",
-        check_fn: function() {
-            if(demographicsIsCompleted()) {
-                console.log(getDemographicsResponses());
-                let demographics = Object.assign({subjCode}, getDemographicsResponses());
-                // POST demographics data to server
-                $.ajax({
-                    url: 'http://' + document.domain + ':' + PORT + '/demographics',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(demographics),
-                    success: function () {
-                    }
-                })
-                return true;
+        prompt: function() {
+          const circles = choices.map((choice, index) => {
+            if (choice == response.choice) {
+              return /*html*/ `
+                        <div class="choice">
+                          <div class="choice-circle filled-circle"></div>
+                          <div class="text">${choice}</div>
+                        </div>
+                      `;
             }
-            else {
-                return false;
-            }
+            return /*html*/ `
+                  <div class="choice">
+                    <div class="choice-circle empty-circle"></div>
+                    <div class="text">${choice}</div>
+                  </div>
+                  `;
+          });
+
+          const prompt = /*html*/ `
+                  <div class="bar">
+                      ${circles.join("")}
+                  </div>
+              `;
+          return prompt;
+        },
+
+        on_finish: function() {
+          jsPsych.setProgressBar((progress_number - 1) / num_trials);
+          progress_number++;
         }
-    };
-    timeline.push(demographicsTrial);
+      };
+      timeline.push(breakTrial);
+      trial_number++;
+    });
+  });
 
-    let endmessage = `
+  let questionsInstructions = {
+    type: "instructions",
+    key_forward: "space",
+    key_backward: "backspace",
+    pages: [
+      `<p class="lead">Thank you! We'll now ask a few demographic questions and you'll be done!
+            </p> ${continue_space}`
+    ]
+  };
+  timeline.push(questionsInstructions);
+
+  window.questions = trials.questions; // allow surveyjs to access questions
+
+  let demographicsTrial = {
+    type: "surveyjs",
+    questions: demographicsQuestions,
+    on_finish: function(data) {
+      let demographicsResponses = data.response;
+      let demographics = Object.assign({ subjCode }, demographicsResponses);
+      console.log(demographics);
+      // POST demographics data to server
+      $.ajax({
+        url: "http://" + document.domain + ":" + PORT + "/demographics",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(demographics),
+        success: function() {}
+      });
+
+      let endmessage = `Thank you for participating! Your completion code is ${participantID}. Copy and paste this in 
+        MTurk to get paid. 
+        <p>The purpose of this HIT is to assess the extent to which different people agree what makes
+        a particular dog, cat, or car typical.
+        
+        <p>
+        If you have any questions or comments, please email hroebuck@wisc.edu.`;
+      jsPsych.endExperiment(endmessage);
+    }
+  };
+  timeline.push(demographicsTrial);
+
+  let endmessage = /*html*/ `
     <p class="lead">Thank you for participating! Your completion code is ${participantID}. Copy and paste this in 
     MTurk to get paid. If you have any questions or comments, please email cschonberg@wisc.edu.</p>
-    `
+    `;
 
+  let images = [];
+  // add scale pic paths to images that need to be loaded
+  images.push("img/scale.png");
+  for (let i = 1; i <= 7; i++) images.push("img/scale" + i + ".jpg");
 
-    let images = [];
-    // add scale pic paths to images that need to be loaded
-    images.push('img/scale.png');
-    for (let i = 1; i <= 7; i++)
-        images.push('img/scale' + i + '.jpg');
-
-    jsPsych.pluginAPI.preloadImages(images, function () { startExperiment(); });
-    document.timeline = timeline;
-    function startExperiment() {
-        jsPsych.init({
-            default_iti: 0,
-            timeline: timeline,
-            fullscreen: FULLSCREEN,
-            show_progress_bar: true,
-            on_finish: function (data) {
-                jsPsych.endExperiment(endmessage);
-            }
-        });
-    }
+  jsPsych.pluginAPI.preloadImages(images, function() {
+    startExperiment();
+  });
+  document.timeline = timeline;
+  function startExperiment() {
+    jsPsych.init({
+      default_iti: 0,
+      timeline: timeline,
+      fullscreen: FULLSCREEN,
+      show_progress_bar: true,
+      auto_update_progress_bar: false
+    });
+  }
 }

@@ -4,7 +4,7 @@ You must have nodjs installed: https://nodejs.org. Make sure Python 2 is install
 
 ```
 git clone https://github.com/kmui2/Image-Similarity-Experiment
-cd Image-Similarity-Experiment
+cd TypicalityImageRatingsExperiment
 sudo npm install -g nodemon
 npm install
 npm start

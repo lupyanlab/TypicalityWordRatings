@@ -1,4 +1,6 @@
-const PORT = 7096;
+import { runExperiment } from "./experiment.js";
+
+const PORT = 7099;
 const FULLSCREEN = true;
 $(document).ready(function(){
 
@@ -42,7 +44,7 @@ $(document).ready(function(){
                     }
                 }
                 $("#loading").remove();
-                runExperiment(data.trials, subjCode, workerId, assignmentId, hitId);
+                runExperiment(data.trials, subjCode, workerId, assignmentId, hitId, FULLSCREEN, PORT);
                 jsPsych.pluginAPI.preloadImages(images, function(){}); 
             }
         })

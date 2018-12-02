@@ -14,7 +14,7 @@ let writer = csvWriter({ sendHeaders: false });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.set('port', (process.env.PORT || 7096))
+app.set('port', (process.env.PORT || 7099))
 
 // Add headers
 app.use(function (req, res, next) {
@@ -45,6 +45,17 @@ let categoriesCount = { dev: {}, prod: {} };
 const categoriesCountDevPath = 'categoriesCount.dev.csv';
 const categoriesCountProdPath = 'categoriesCount.prod.csv';
 
+if (!fs.existsSync(path.join('./demographics'))) {
+  fs.mkdirSync(path.join('./demographics'));
+}
+
+if (!fs.existsSync(path.join('./trials'))) {
+  fs.mkdirSync(path.join('./trials'));
+}
+
+if (!fs.existsSync(path.join('./data'))) {
+  fs.mkdirSync(path.join('./data'));
+}
 
 if (fs.existsSync(categoriesCountDevPath)){
   // Read existing category counts if csv exists.
