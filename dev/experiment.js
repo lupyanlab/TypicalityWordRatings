@@ -49,15 +49,6 @@ export function runExperiment(
 
   timeline.push(consent);
 
-  // let welcome_block = {
-  //     type: "text",
-  //     cont_key: ' ',
-  //     text: `<h1>Naming Categories</h1>
-  //     <p class="lead">Welcome to the experiment. Thank you for participating! Press SPACE to begin.</p>`
-  // };
-
-  // timeline.push(welcome_block);
-
   let continue_space =
     "<div class='right small'>(press SPACE to continue)</div>";
 
@@ -66,8 +57,9 @@ export function runExperiment(
     key_forward: "space",
     key_backward: "backspace",
     pages: [
-      /*html*/ `<p class="lead">In this HIT, you will see groups of various images. Your job is to type out a name that applies to all the images. For example, if you see a bunch of dogs, you should write 'dogs'. You should use as few words as possible in your response. For example, "dolls" instead of "a bunch of dolls".
-            </p> <p class="lead">Use the your keyboard and click on the text box to type in your answer. Then, indicate how familiar you are with the items shown, and hit 'submit'.
+      /*html*/ `<p class="lead">In this HIT, you will see various images of familiar objects. For each image, please rate how typical it is of its category.
+            For example, you may be shown a series of motorcycles and asked how typical each one is of motorcyles in general.
+            </p> <p class="lead">Use the  1-5 keys on the keyboard to respond. 1 means very typical. 5 means very atypical. Please try to use the entire scale, not just the 1/5 keys. If you rush through without attending to the images, we may deny payment.
             </p> ${continue_space}`
     ]
   };
@@ -98,7 +90,7 @@ export function runExperiment(
       };
 
       let stimulus = /*html*/ `
-        <h5 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h5>
+        <h4 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h4>
         <h1>How typical is this ${categoryNamesMap[category]}?</div>
         <div style="width:100%;">
             <div style="width: 100%;;text-align:center;margin: auto;padding: 0em;">
@@ -236,16 +228,11 @@ export function runExperiment(
         a particular dog, cat, or car typical.
         
         <p>
-        If you have any questions or comments, please email hroebuck@wisc.edu.`;
+        If you have any questions or comments, please email cschonberg@wisc.edu.`;
       jsPsych.endExperiment(endmessage);
     }
   };
   timeline.push(demographicsTrial);
-
-  let endmessage = /*html*/ `
-    <p class="lead">Thank you for participating! Your completion code is ${participantID}. Copy and paste this in 
-    MTurk to get paid. If you have any questions or comments, please email cschonberg@wisc.edu.</p>
-    `;
 
   let images = [];
   // add scale pic paths to images that need to be loaded

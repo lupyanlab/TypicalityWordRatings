@@ -1,52 +1,52 @@
-directory,name
-bell,bell
-binoculars,binoculars
-broom,broom
-camera,camera
-cheese,cheese
-glove,glove
-guitar,guitar
-scissors,scissors
-speaker,speaker
-tree,tree
-calculator,calculator
-umbrella,umbrella
-laptop,laptop
-backpack,backpack
-spoon,spoon
-ball,ball
-button,button
-lamp,lamp
-birdhouse,birdhouse
-stapler,stapler
-trophy,trophy
-desk,desk
-key,key
-coffeemaker,coffeemaker
-chair,chair
-goggles,goggles
-car,car
-compass,compass
-garbagecan,garbage can
-frame,frame
-wineglass,wineglass
-videogamecontroller,game controller
-dumbbell,dumbbell
-pitcher,pitcher
-sippycup,sippy cup
-handbag,handbag
-mp3player,music player
-camcorder,camcorder
-tv,TV
-cupsaucer,cup and saucer
-exerciseequipment,exercise equipment
-candleholderwithcandle,candle holder
-patioloungechair,lounge chair
-bathsuit,bathing suit
-walllamp,wall lamp
-dollhouse,doll house
-parfait,parfait
-saltpeppershake,salt/pepper shaker
-chessboard,chess board
-powerstrip,power strip
-gamehandheld,handheld game
+directory,"name"
+backpack,"backpack"
+ball,"ball"
+bathsuit,"swimsuit"
+bell,"bell"
+binoculars,"binoculars"
+birdhouse,"birdhouse"
+broom,"broom"
+button,"button"
+calculator,"calculator"
+camcorder,"camcorder"
+camera,"camera"
+candleholderwithcandle,"candle"
+car,"car"
+chair,"chair"
+cheese,"cheese"
+chessboard,"chessboard"
+coffeemaker,"coffeemaker"
+compass,"compass"
+cupsaucer,"teacup"
+desk,"desk"
+dollhouse,"dollhouse"
+dumbbell,"dumbbell"
+exerciseequipment,"exercise equipment"
+frame,"frame"
+gamehandheld,"gameboy / handheld game"
+garbagecan,"trashcan"
+glove,"glove"
+goggles,"goggles"
+guitar,"guitar"
+handbag,"purse"
+key,"key"
+lamp,"lamp"
+laptop,"laptop"
+mp3player,"mp3 player"
+parfait,"parfait"
+patioloungechair,"lounge chair"
+pitcher,"pitcher"
+powerstrip,"power strip"
+saltpeppershake,"salt and pepper shaker"
+scissors,"scissors"
+sippycup,"sippy cup"
+speaker,"speaker"
+spoon,"spoon"
+stapler,"stapler"
+tree,"tree"
+trophy,"trophy"
+tv,"television"
+umbrella,"umbrella"
+videogamecontroller,"controller"
+walllamp,"wall lamp"
+wineglass,"wine glass"
