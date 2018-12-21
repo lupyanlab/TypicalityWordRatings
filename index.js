@@ -1,12 +1,12 @@
 // Dependencies
-const express = require('express');
+const express = require("express");
 const path = require("path");
-const PythonShell = require('python-shell');
-const fs = require('fs');
+const PythonShell = require("python-shell");
+const fs = require("fs");
 const csvWriter = require("csv-write-stream");
-const _ = require('lodash');
-const bodyParser = require('body-parser');
-const csv = require('csvtojson');
+const _ = require("lodash");
+const bodyParser = require("body-parser");
+const csv = require("csvtojson");
 
 let app = express();
 let writer = csvWriter({ sendHeaders: false });
@@ -14,14 +14,20 @@ let writer = csvWriter({ sendHeaders: false });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.set('port', (process.env.PORT || 7099))
+app.set("port", process.env.PORT || 7100);
 
 // Add headers
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
+app.use(function(req, res, next) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,content-type"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
   res.setHeader("Pragma", "no-cache"); // HTTP 1.0.
   res.setHeader("Expires", "0"); // Proxies.
@@ -29,142 +35,82 @@ app.use(function (req, res, next) {
 });
 
 // For Rendering HTML
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname + '/dev/index.html'));
-})
-app.use(express.static(__dirname + '/dev'));
+app.get("/", function(req, res) {
+  res.sendFile(path.join(__dirname + "/dev/index.html"));
+});
+app.use(express.static(__dirname + "/dev"));
 
-app.listen(app.get('port'), function () {
-  console.log("Node app is running at http://localhost:" + app.get('port'))
-})
+app.listen(app.get("port"), function() {
+  console.log("Node app is running at http://localhost:" + app.get("port"));
+});
 
-let images = { dev: {}, prod: {}};
-let categoriesCount = { dev: {}, prod: {} };
+let batchesCount = { dev: {}, prod: {} };
 
 // create a new file to store category counts
-const categoriesCountDevPath = 'categoriesCount.dev.csv';
-const categoriesCountProdPath = 'categoriesCount.prod.csv';
+const batchesCountDevPath = "batchesCounts.dev.csv";
+const batchesCountProdPath   = "batchesCounts.prod.csv";
 
-if (!fs.existsSync(path.join('./demographics'))) {
-  fs.mkdirSync(path.join('./demographics'));
+if (!fs.existsSync(path.join("./demographics"))) {
+  fs.mkdirSync(path.join("./demographics"));
 }
 
-if (!fs.existsSync(path.join('./trials'))) {
-  fs.mkdirSync(path.join('./trials'));
+if (!fs.existsSync(path.join("./trials"))) {
+  fs.mkdirSync(path.join("./trials"));
 }
 
-if (!fs.existsSync(path.join('./data'))) {
-  fs.mkdirSync(path.join('./data'));
+if (!fs.existsSync(path.join("./data"))) {
+  fs.mkdirSync(path.join("./data"));
 }
 
-const categoryNamesMap = {};
-
-csv()
-.fromFile(path.join('category_names.csv'))
-.on('json', (jsonObj) => {
-  const { directory, name } = jsonObj;
-  categoryNamesMap[directory] = name;
-})
-.on('done', error => {
-  if (error) throw error;
-})
-
-if (fs.existsSync(categoriesCountDevPath)){
+if (fs.existsSync(batchesCountDevPath)) {
   // Read existing category counts if csv exists.
   csv()
-  .fromFile(categoriesCountDevPath)
-  .on('json', (jsonObj) => {categoriesCount.dev =  jsonObj})
-  .on('done', (error) => {
-    if (error) throw error;
-    console.log(categoriesCount.dev);
-    Object.keys(categoriesCount.dev).forEach(category => {
-      const folderLocation = `dev/images/${category}`;
-      images.dev[category] = [];
-      fs.readdirSync(folderLocation).forEach(file => {
-        images.dev[category].push(path.join('images', category, file));
-      })
+    .fromFile(batchesCountDevPath)
+    .on("json", jsonObj => {
+      batchesCount.dev = jsonObj;
+    })
+    .on("done", error => {
+      if (error) throw error;
+      console.log(batchesCount.dev);
     });
-    writer = csvWriter({ sendHeaders: false });
-    writer.pipe(fs.createWriteStream(categoriesCountDevPath, { flags: 'a' }));
-    writer.end();
-  })
 } else {
   // Create new csv of category counts if doesn't exist.
   // Get all categories from image folders.
-  fs.readdirSync('dev/images').forEach(folder => {
-    if (folder != '.DS_Store') {
-      // Check for image folders that are non-empty
-      if (fs.readdirSync('dev/images/' + folder).length > 0) {
-        categoriesCount.dev[folder] = 0;
-        images.dev[folder] = [];
-        fs.readdirSync('dev/images/' + folder).forEach(file => {
-          if (file == 'TestItems') {
-            fs.readdirSync('dev/images/' + folder + '/TestItems').forEach(file => {
-              if (!['.DS_Store', 'Thumbs.db', 'extra', 'AMC5143AAS_COB_370.jpe'].includes(file))
-                images.dev[folder].push('images/' + folder + '/TestItems/' + file);
-            });
-          }
-          if (!['.DS_Store', 'TestItems', 'Thumbs.db', 'extra', 'AMC5143AAS_COB_370.jpe'].includes(file))
-            images.dev[folder].push('images/' + folder + '/' + file);
-        })
-      }
-    }
+  fs.readdirSync(path.join("word_to_rate"), { withFileTypes: true }).forEach(file => {
+    // Check for image folders that are non-empty
+    batchesCount.dev[path.join('word_to_rate', file.name)] = 0;
   });
-  writer = csvWriter({ headers: Object.keys(categoriesCount.dev) });
-  writer.pipe(fs.createWriteStream(categoriesCountDevPath, { flags: 'a' }));
-  writer.write(categoriesCount.dev);
+  writer = csvWriter({ headers: Object.keys(batchesCount.dev) });
+  writer.pipe(fs.createWriteStream(batchesCountDevPath, { flags: "a" }));
+  writer.write(batchesCount.dev);
   writer.end();
 }
 
-
-if (fs.existsSync(categoriesCountProdPath)){
+if (fs.existsSync(batchesCountProdPath)) {
   // Read existing category counts if csv exists.
   csv()
-  .fromFile(categoriesCountProdPath)
-  .on('json', (jsonObj) => {categoriesCount.prod =  jsonObj})
-  .on('done', (error) => {
-    if (error) throw error;
-    console.log(categoriesCount.prod);
-    Object.keys(categoriesCount.prod).forEach(category => {
-      const folderLocation = `prod/images/${category}`;
-      images.prod[category] = [];
-      fs.readdirSync(folderLocation).forEach(file => {
-        images.prod[category].push(path.join('images', category, file));
-      })
+    .fromFile(batchesCountProdPath)
+    .on("json", jsonObj => {
+      batchesCount.prod = jsonObj;
+    })
+    .on("done", error => {
+      if (error) throw error;
+      console.log(batchesCount.prod);
     });
-    writer = csvWriter({ sendHeaders: false });
-    writer.pipe(fs.createWriteStream(categoriesCountProdPath, { flags: 'a' }));
-    writer.end();
-  })
 } else {
   // Create new csv of category counts if doesn't exist.
   // Get all categories from image folders.
-  fs.readdirSync('prod/images').forEach(folder => {
-    if (folder != '.DS_Store') {
-      if (fs.readdirSync('prod/images/' + folder)) {
-        categoriesCount.prod[folder] = 0;
-        images.prod[folder] = [];
-        fs.readdirSync('prod/images/' + folder).forEach(file => {
-          if (file == 'TestItems') {
-            fs.readdirSync('prod/images/' + folder + '/TestItems').forEach(file => {
-              if (!['.DS_Store', 'Thumbs.db', 'extra', 'AMC5143AAS_COB_370.jpe'].includes(file))
-                images.prod[folder].push('images/' + folder + '/TestItems/' + file);
-            });
-          }
-          if (!['.DS_Store', 'TestItems', 'Thumbs.db', 'extra', 'AMC5143AAS_COB_370.jpe'].includes(file))
-            images.prod[folder].push('images/' + folder + '/' + file);
-        })
-      }
-    }
+  fs.readdirSync("word_to_rate").forEach(file => {
+    batchesCount.prod[file] = 0;
   });
-  writer = csvWriter({ headers: Object.keys(categoriesCount.prod) });
-  writer.pipe(fs.createWriteStream(categoriesCountProdPath, { flags: 'a' }));
-  writer.write(categoriesCount.prod);
+  writer = csvWriter({ headers: Object.keys(batchesCount.prod) });
+  writer.pipe(fs.createWriteStream(batchesCountProdPath, { flags: "a" }));
+  writer.write(batchesCount.prod);
   writer.end();
 }
 
 // POST endpoint for requesting trials
-app.post('/trials', function (req, res) {
+app.post("/trials", function(req, res) {
   console.log("trials post request received");
 
   let subjCode = req.body.subjCode;
@@ -172,158 +118,113 @@ app.post('/trials', function (req, res) {
   let numPics = req.body.numPics || 17;
   let reset = req.body.reset;
   const dev = req.body.dev == true;
-  const env = dev ? 'dev' : 'prod';
-  console.log(`Trials Environment: ${env}`)
+  const env = dev ? "dev" : "prod";
+  console.log(`Trials Environment: ${env}`);
   console.log(req.body);
 
+  const batchesCountPath = dev
+    ? batchesCountDevPath
+    : batchesCountProdPath;
+  const trialsPath = path.join(__dirname, "trials/", `${subjCode}_trials.csv`);
+  const dataPath = path.join(__dirname, "data", `${subjCode}_data.csv`);
+
   // subject is not finished
-  if (fs.existsSync('trials/' + subjCode + '_trials.txt') && reset == 'false') {
-    console.log('Grabbing unfinished trials')
-    let completed = [];
-    const csvFilePath = 'data/' + subjCode + '_data.csv';
+  // Read from already collected data
+  // Read trials file
+  // Send filtered trials to client
+  if (fs.existsSync(dataPath) && reset == "false") {
+    console.log("Grabbing unfinished trials");
+    const completedWords = new Set();
+    const trials = [];
     csv()
-      .fromFile(csvFilePath)
-      .on('json', (jsonObj) => {completed.push(jsonObj.image)})
-      .on('done', (error) => {
-        fs.readFile('trials/' + subjCode + '_trials.txt', 'utf8', function (err, data) {
-          if (err) throw err;
-
-          let subjCategories = data.split('\n').filter((c) => {return !completed.includes(c)});
-          let subjImages = Object.assign({}, images[env]);
-          for (let category in subjImages) {
-            subjImages[category] = subjImages[category].filter(image => !completed.includes(image));
-          }
-
-          let questions = _.shuffle(fs.readFileSync('IRQ_questions.txt').toString().replace(/\r/g, '\n').split('\n')).filter((line) => {return line.replace(/ /g, '').length > 0 });
-
-          let trials = { categories: subjCategories, images: subjImages, questions: questions, categoryNamesMap };
-          res.send({ success: true, trials: trials });
-        });
+      .fromFile(dataPath)
+      .on("json", jsonObj => {
+        completedWords.add(jsonObj.word);
       })
+      .on("done", error => {
+        csv()
+          .fromFile(trialsPath)
+          .on("json", jsonObj => {
+            !completedWords.has(jsonObj.word) && trials.push(jsonObj);
+          })
+          .on("done", error => {
+            res.send({ success: true, trials });
+          });
+      });
   }
   // new subject or needs to reset trial data
+  // Copy batch file to trials folder with subjectCode in filename
+  // Send batch file data to client as json
   else {
-    console.log('Creating new trials');
-    
+    console.log("Creating new trials");
+
     // removes existing data files if resetting
-    if (reset == 'true') {
-      if (fs.existsSync('trials/' + subjCode + '_trials.txt')) fs.unlinkSync('trials/' + subjCode + '_trials.txt');
-      if (fs.existsSync('data/' + subjCode + '_data.csv'))  fs.unlinkSync('data/' + subjCode + '_data.csv');
+    if (reset == "true") {
+      if (fs.existsSync(trialsPath)) fs.unlinkSync(trialsPath);
+      if (fs.existsSync(dataPath)) fs.unlinkSync(dataPath);
     }
 
-    let categories = _.shuffle(Object.keys(categoriesCount[env]));
-    let countLists = {};
-    for (let cat of categories) {
-      if (!(categoriesCount[env][cat] in countLists))
-        countLists[categoriesCount[env][cat]] = [cat];
-      else 
-        countLists[categoriesCount[env][cat]].push(cat);
-    }
-    
-    // Add categories with the least count to subject trials
-    let counts = Object.keys(countLists).sort((a, b) => {
-      return Number(a) - Number(b);
-    });
-    let subjCategories = [];
-    for (let count of counts) {
-        for (let cat of countLists[count]) {
-          if (subjCategories.length < numTrials) {
-            subjCategories.push(cat);
-            categoriesCount[env][cat] = (Number(categoriesCount[env][cat]) + 1 )+'';
-          }
-          else break;
-        }
-    }
+    const batchFile = Object.entries(batchesCount[env]).reduce((a, c) =>
+      Number(a[1]) < Number(c[1]) ? a : c
+    )[0];
 
-    // Write to trials file
-    fs.writeFile('trials/' + subjCode + '_trials.txt', subjCategories.join('\n'), function (err) {
-      if (err) return console.log(err);
-      console.log("Trials list saved!");
-    });
+    fs.copyFileSync(batchFile, trialsPath);
 
-    const categoriesCountDevPath = 'categoriesCount.dev.csv';
-    const categoriesCountProdPath = 'categoriesCount.prod.csv';
-    const categoriesCountPath = dev ? categoriesCountDevPath : categoriesCountProdPath;
+    const trials = [];
+    csv()
+      .fromFile(trialsPath)
+      .on("json", jsonObj => {
+        trials.push(jsonObj);
+      })
+      .on("done", error => {
+        batchesCount[env][batchFile] = String(
+          Number(batchesCount[env][batchFile]) + 1
+        );
 
-    let headers = categories;
-    if (!fs.existsSync(categoriesCountPath))
-      writer = csvWriter({ headers: headers });
-    else
-      writer = csvWriter({ sendHeaders: false });
+        writer = csvWriter({ headers: Object.keys(batchesCount[env]) });
+        writer.pipe(fs.createWriteStream(batchesCountPath, { flags: "a" }));
+        writer.write(batchesCount[env]);
+        writer.end();
 
-    writer.pipe(fs.createWriteStream(categoriesCountPath, { flags: 'a' }));
-    writer.write(categoriesCount[env]);
-    writer.end();
-
-    let subjImages = Object.assign({}, images[env]);
-    for (let category in subjImages) {
-      subjImages[category] = _.shuffle(subjImages[category]).slice(0, numPics);
-    }
-    let questions = _.shuffle(fs.readFileSync('IRQ_questions.txt').toString().replace(/\r/g, '\n').split('\n')).filter((line) => { return line.replace(/ /g, '').length > 0 });
-    let trials = { categories: subjCategories, images: subjImages, questions: questions, categoryNamesMap};
-
-    console.log(categoriesCount[env]);
-    res.send({ success: true, trials: trials });
-
+        console.log(trials);
+        res.send({ success: true, trials });
+      });
   }
-})
-
+});
 
 // POST endpoint for receiving trial responses
-app.post('/data', function (req, res) {
-  console.log('data post request received');
+app.post("/data", function(req, res) {
+  console.log("data post request received");
 
   // Parses the trial response data to csv
   let response = req.body;
   console.log(response);
-  let path = 'data/' + response.subjCode + '_data.csv';
+  let path = "data/" + response.subjCode + "_data.csv";
   let headers = Object.keys(response);
-  if (!fs.existsSync(path))
-    writer = csvWriter({ headers: headers });
-  else
-    writer = csvWriter({ sendHeaders: false });
+  if (!fs.existsSync(path)) writer = csvWriter({ headers: headers });
+  else writer = csvWriter({ sendHeaders: false });
 
-  writer.pipe(fs.createWriteStream(path, { flags: 'a' }));
+  writer.pipe(fs.createWriteStream(path, { flags: "a" }));
   writer.write(response);
   writer.end();
 
   res.send({ success: true });
-})
-
+});
 
 // POST endpoint for receiving trial responses
-app.post('/demographics', function (req, res) {
-  console.log('demographics post request received');
+app.post("/demographics", function(req, res) {
+  console.log("demographics post request received");
 
   // Parses the trial response data to csv
   let demographics = req.body;
   console.log(demographics);
-  let path = 'demographics/' + demographics.subjCode + '_demographics.csv';
+  let path = "demographics/" + demographics.subjCode + "_demographics.csv";
   let headers = Object.keys(demographics);
   writer = csvWriter({ headers: headers });
 
-  writer.pipe(fs.createWriteStream(path, { flags: 'w' }));
+  writer.pipe(fs.createWriteStream(path, { flags: "w" }));
   writer.write(demographics);
   writer.end();
 
   res.send({ success: true });
-})
-
-
-// POST endpoint for receiving trial responses
-app.post('/IRQ', function (req, res) {
-  console.log('IRQ post request received');
-
-  // Parses the trial response data to csv
-  let IRQ = req.body;
-  console.log(IRQ);
-  let path = 'IRQ/' + IRQ.subjCode + '_IRQ.csv';
-  let headers = Object.keys(IRQ);
-  writer = csvWriter({ headers: headers });
-
-  writer.pipe(fs.createWriteStream(path, { flags: 'w' }));
-  writer.write(IRQ);
-  writer.end();
-
-  res.send({ success: true });
-})
+});
