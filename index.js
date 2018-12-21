@@ -50,17 +50,16 @@ let batchesCount = { dev: {}, prod: {} };
 const batchesCountDevPath = "batchesCounts.dev.csv";
 const batchesCountProdPath = "batchesCounts.prod.csv";
 
-if (!fs.existsSync(path.join("./demographics"))) {
-  fs.mkdirSync(path.join("./demographics"));
+function createFolderIfDoesntExist(foldername) {
+  if (!fs.existsSync(path.join(__dirname, foldername))) {
+    fs.mkdirSync(path.join(__dirname, foldername));
+  }
 }
 
-if (!fs.existsSync(path.join("./trials"))) {
-  fs.mkdirSync(path.join("./trials"));
-}
-
-if (!fs.existsSync(path.join("./data"))) {
-  fs.mkdirSync(path.join("./data"));
-}
+createFolderIfDoesntExist('demographics');
+createFolderIfDoesntExist('trials');
+createFolderIfDoesntExist('data');
+createFolderIfDoesntExist('word_to_rate');
 
 if (fs.existsSync(batchesCountDevPath)) {
   // Read existing category counts if csv exists.
