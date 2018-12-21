@@ -15,7 +15,6 @@ $(document).ready(function(){
         // DEFINE workerId, hitId, assignmentId HERE
         //////////////////////////////////////////
         let subjCode = $.urlParam('workerId') || 'unknown';
-        let numTrials = $.urlParam("numTrials") || 15;        
         let reset =  $.urlParam("newSet") || 'false';
         let workerId = 'workerId';
         let assignmentId = 'assignmentId';
@@ -29,22 +28,12 @@ $(document).ready(function(){
             url: 'http://'+document.domain+':'+PORT+'/trials',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({subjCode, numTrials, reset, dev: false }),
+            data: JSON.stringify({subjCode, reset, dev: false }),
             success: function (data) {
                 console.log(data);
                 
-                let images = [];
-                let categories = data.trials.categories;
-                let stimuli = data.trials.images;
-
-                for (let category of categories) {
-                    for (let file of stimuli[category]) {
-                        images.push(file);
-                    }
-                }
                 $("#loading").remove();
                 runExperiment(data.trials, subjCode, workerId, assignmentId, hitId, FULLSCREEN, PORT);
-                jsPsych.pluginAPI.preloadImages(images, function(){}); 
             }
         })
     

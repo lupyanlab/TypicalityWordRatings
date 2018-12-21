@@ -65,132 +65,127 @@ export function runExperiment(
   };
 
   timeline.push(instructions);
-  let num_trials = trials.categories.reduce(
-    (a, category) => a + trials.images[category].length,
-    0
-  );
-  document.trials = trials;
+  const num_trials = trials.length;
 
   let trial_number = 1;
   let progress_number = 1;
 
-  const { categoryNamesMap } = trials;
   // Pushes each audio trial to timeline
-  trials.categories.forEach(category => {
-    trials.images[category].forEach(image => {
-      let response = {
-        subjCode: subjCode,
-        participantID: participantID,
-        category: category,
-        image: image,
-        expTimer: -1,
-        response: -1,
-        trial_number: trial_number,
-        rt: -1
-      };
+  trials.forEach(trial => {
+    let response = {
+      subjCode: subjCode,
+      word: trial.word,
+      question_prompt_pre: trial.question_prompt_pre,
+      question_prompt_post: trial.question_prompt_post,
+      question_type: trial.question_type,
+      bin: trial.bin,
+      choice1: trial.choice1,
+      choice2: trial.choice2,
+      choice3: trial.choice3,
+      choice4: trial.choice4,
+      choice5: trial.choice5,
+      expTimer: -1,
+      response: -1,
+      trial_number: trial_number,
+      rt: -1
+    };
 
-      let stimulus = /*html*/ `
-        <h4 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h4>
-        <h1>How typical is this ${categoryNamesMap[category]}?</div>
-        <div style="width:100%;">
-            <div style="width: 100%;;text-align:center;margin: auto;padding: 0em;">
-                <img src="${image}" alt="${image}" height="200px" align="middle" style="max-width:400px;width=50%;" />
-            </div>
-        </div>
-    `;
+    let stimulus = /*html*/ `
+      <h4 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h4>
+      <div style="padding:10%;"><h1>${trial.question_prompt_pre}${trial.word}${trial.question_prompt_post}</h1></div>
+  `;
 
-      const choices = ["1 (Very typical)", "2", "3", "4", "5 (Very atypical)"];
+    const choices = [trial.choice1, trial.choice2, trial.choice3, trial.choice4, trial.choice5];
 
-      let circles = choices.map(choice => {
-        return /*html*/ `
-            <div class="choice">
-                <div class="choice-circle empty-circle"></div>
-                <div class="text">${choice}</div>
-            </div>
-        `;
-      });
-
-      let prompt = /*html*/ `
-            <div class="bar">
-                ${circles.join("")}
-            </div>
-        `;
-
-      // Picture Trial
-      let pictureTrial = {
-        type: "html-keyboard-response",
-        choices: choices.map((choice, index) => {
-          return `${index + 1}`;
-        }),
-
-        stimulus: stimulus,
-
-        prompt: function() {
-          return prompt;
-        },
-
-        on_finish: function(data) {
-          response.response = String.fromCharCode(data.key_press);
-          response.choice = choices[Number(response.response) - 1];
-          response.rt = data.rt;
-          response.expTimer = data.time_elapsed / 1000;
-
-          // POST response data to server
-          $.ajax({
-            url: "http://" + document.domain + ":" + PORT + "/data",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(response),
-            success: function() {
-              console.log(response);
-            }
-          });
-        }
-      };
-      timeline.push(pictureTrial);
-
-      // let subject view their choice
-      let breakTrial = {
-        type: "html-keyboard-response",
-        trial_duration: 500,
-        response_ends_trial: false,
-
-        stimulus: stimulus,
-
-        prompt: function() {
-          const circles = choices.map((choice, index) => {
-            if (choice == response.choice) {
-              return /*html*/ `
-                        <div class="choice">
-                          <div class="choice-circle filled-circle"></div>
-                          <div class="text">${choice}</div>
-                        </div>
-                      `;
-            }
-            return /*html*/ `
-                  <div class="choice">
-                    <div class="choice-circle empty-circle"></div>
-                    <div class="text">${choice}</div>
-                  </div>
-                  `;
-          });
-
-          const prompt = /*html*/ `
-                  <div class="bar">
-                      ${circles.join("")}
-                  </div>
-              `;
-          return prompt;
-        },
-
-        on_finish: function() {
-          jsPsych.setProgressBar((progress_number - 1) / num_trials);
-          progress_number++;
-        }
-      };
-      timeline.push(breakTrial);
-      trial_number++;
+    let circles = choices.map(choice => {
+      return /*html*/ `
+          <div class="choice">
+              <div class="choice-circle empty-circle"></div>
+              <div class="text">${choice}</div>
+          </div>
+      `;
     });
+
+    let prompt = /*html*/ `
+          <div class="bar">
+              ${circles.join("")}
+          </div>
+      `;
+
+    // Picture Trial
+    let pictureTrial = {
+      type: "html-keyboard-response",
+      choices: choices.map((choice, index) => {
+        return `${index + 1}`;
+      }),
+
+      stimulus: stimulus,
+
+      prompt: function() {
+        return prompt;
+      },
+
+      on_finish: function(data) {
+        response.response = String.fromCharCode(data.key_press);
+        response.choice = choices[Number(response.response) - 1];
+        response.rt = data.rt;
+        response.expTimer = data.time_elapsed / 1000;
+
+        // POST response data to server
+        $.ajax({
+          url: "http://" + document.domain + ":" + PORT + "/data",
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(response),
+          success: function() {
+            console.log(response);
+          }
+        });
+      }
+    };
+    timeline.push(pictureTrial);
+
+    // let subject view their choice
+    let breakTrial = {
+      type: "html-keyboard-response",
+      trial_duration: 500,
+      response_ends_trial: false,
+
+      stimulus: stimulus,
+
+      prompt: function() {
+        const circles = choices.map((choice, index) => {
+          if (choice == response.choice) {
+            return /*html*/ `
+                      <div class="choice">
+                        <div class="choice-circle filled-circle"></div>
+                        <div class="text">${choice}</div>
+                      </div>
+                    `;
+          }
+          return /*html*/ `
+                <div class="choice">
+                  <div class="choice-circle empty-circle"></div>
+                  <div class="text">${choice}</div>
+                </div>
+                `;
+        });
+
+        const prompt = /*html*/ `
+                <div class="bar">
+                    ${circles.join("")}
+                </div>
+            `;
+        return prompt;
+      },
+
+      on_finish: function() {
+        jsPsych.setProgressBar((progress_number - 1) / num_trials);
+        progress_number++;
+      }
+    };
+    timeline.push(breakTrial);
+    trial_number++;
   });
 
   let questionsInstructions = {
@@ -234,14 +229,7 @@ export function runExperiment(
   };
   timeline.push(demographicsTrial);
 
-  let images = [];
-  // add scale pic paths to images that need to be loaded
-  images.push("img/scale.png");
-  for (let i = 1; i <= 7; i++) images.push("img/scale" + i + ".jpg");
-
-  jsPsych.pluginAPI.preloadImages(images, function() {
-    startExperiment();
-  });
+  startExperiment();
   document.timeline = timeline;
   function startExperiment() {
     jsPsych.init({

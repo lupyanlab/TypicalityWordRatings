@@ -7,5 +7,5 @@ descriptions/
 .DS_Store
 launch.json
 generate_trials.log
-batchCounts*
+batchesCounts*
 word_to_rate/

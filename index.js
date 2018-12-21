@@ -48,7 +48,7 @@ let batchesCount = { dev: {}, prod: {} };
 
 // create a new file to store category counts
 const batchesCountDevPath = "batchesCounts.dev.csv";
-const batchesCountProdPath   = "batchesCounts.prod.csv";
+const batchesCountProdPath = "batchesCounts.prod.csv";
 
 if (!fs.existsSync(path.join("./demographics"))) {
   fs.mkdirSync(path.join("./demographics"));
@@ -76,9 +76,9 @@ if (fs.existsSync(batchesCountDevPath)) {
 } else {
   // Create new csv of category counts if doesn't exist.
   // Get all categories from image folders.
-  fs.readdirSync(path.join("word_to_rate"), { withFileTypes: true }).forEach(file => {
+  fs.readdirSync(path.join("word_to_rate")).forEach(file => {
     // Check for image folders that are non-empty
-    batchesCount.dev[path.join('word_to_rate', file.name)] = 0;
+    batchesCount.dev[path.join("word_to_rate", file.split(".")[0])] = 0;
   });
   writer = csvWriter({ headers: Object.keys(batchesCount.dev) });
   writer.pipe(fs.createWriteStream(batchesCountDevPath, { flags: "a" }));
@@ -100,8 +100,8 @@ if (fs.existsSync(batchesCountProdPath)) {
 } else {
   // Create new csv of category counts if doesn't exist.
   // Get all categories from image folders.
-  fs.readdirSync("word_to_rate").forEach(file => {
-    batchesCount.prod[file] = 0;
+  fs.readdirSync(path.join("word_to_rate")).forEach(file => {
+    batchesCount.prod[path.join("word_to_rate", file)] = 0;
   });
   writer = csvWriter({ headers: Object.keys(batchesCount.prod) });
   writer.pipe(fs.createWriteStream(batchesCountProdPath, { flags: "a" }));
@@ -122,9 +122,7 @@ app.post("/trials", function(req, res) {
   console.log(`Trials Environment: ${env}`);
   console.log(req.body);
 
-  const batchesCountPath = dev
-    ? batchesCountDevPath
-    : batchesCountProdPath;
+  const batchesCountPath = dev ? batchesCountDevPath : batchesCountProdPath;
   const trialsPath = path.join(__dirname, "trials/", `${subjCode}_trials.csv`);
   const dataPath = path.join(__dirname, "data", `${subjCode}_data.csv`);
 
@@ -132,25 +130,36 @@ app.post("/trials", function(req, res) {
   // Read from already collected data
   // Read trials file
   // Send filtered trials to client
-  if (fs.existsSync(dataPath) && reset == "false") {
+  if (fs.existsSync(trialsPath) && reset == "false") {
     console.log("Grabbing unfinished trials");
     const completedWords = new Set();
     const trials = [];
-    csv()
-      .fromFile(dataPath)
-      .on("json", jsonObj => {
-        completedWords.add(jsonObj.word);
-      })
-      .on("done", error => {
-        csv()
-          .fromFile(trialsPath)
-          .on("json", jsonObj => {
-            !completedWords.has(jsonObj.word) && trials.push(jsonObj);
-          })
-          .on("done", error => {
-            res.send({ success: true, trials });
-          });
-      });
+    if (fs.existsSync(dataPath)) {
+      csv()
+        .fromFile(dataPath)
+        .on("json", jsonObj => {
+          completedWords.add(jsonObj.word);
+        })
+        .on("done", error => {
+          csv()
+            .fromFile(trialsPath)
+            .on("json", jsonObj => {
+              !completedWords.has(jsonObj.word) && trials.push(jsonObj);
+            })
+            .on("done", error => {
+              res.send({ success: true, trials });
+            });
+        });
+    } else {
+      csv()
+        .fromFile(trialsPath)
+        .on("json", jsonObj => {
+          trials.push(jsonObj);
+        })
+        .on("done", error => {
+          res.send({ success: true, trials });
+        });
+    }
   }
   // new subject or needs to reset trial data
   // Copy batch file to trials folder with subjectCode in filename
@@ -168,7 +177,7 @@ app.post("/trials", function(req, res) {
       Number(a[1]) < Number(c[1]) ? a : c
     )[0];
 
-    fs.copyFileSync(batchFile, trialsPath);
+    fs.copyFileSync(path.resolve(__dirname, `${batchFile}.csv`), trialsPath);
 
     const trials = [];
     csv()
@@ -181,7 +190,12 @@ app.post("/trials", function(req, res) {
           Number(batchesCount[env][batchFile]) + 1
         );
 
-        writer = csvWriter({ headers: Object.keys(batchesCount[env]) });
+        if (!fs.existsSync(batchesCountPath)) {
+          writer = csvWriter({ headers: Object.keys(batchesCount[env]) });
+        } else {
+          writer = csvWriter({ sendHeaders: false });
+        }
+
         writer.pipe(fs.createWriteStream(batchesCountPath, { flags: "a" }));
         writer.write(batchesCount[env]);
         writer.end();

@@ -12,7 +12,6 @@ $(document).ready(function(){
         // DEFINE workerId, hitId, assignmentId HERE
         //////////////////////////////////////////
         let subjCode = $("#subjCode").val().slice();
-        let numTrials = $("#numTrials").val();
         let reset =  $("#reset").val();
         let workerId = 'null';
         let assignmentId = 'null';
@@ -27,22 +26,11 @@ $(document).ready(function(){
             url: 'http://'+document.domain+':'+PORT+'/trials',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({subjCode, numTrials, reset, dev: true }),
+            data: JSON.stringify({subjCode, reset, dev: true }),
             success: function (data) {
                 console.log(data);
-
-                let images = [];
-                let categories = data.trials.categories;
-                let stimuli = data.trials.images;
-
-                for (let category of categories) 
-                    for (let file of stimuli[category]) 
-                        images.push(file);
                 
-                jsPsych.pluginAPI.preloadImages(images, function(){}); 
-                    
-                // $("#loading").remove();
-                runExperiment({categories, images: stimuli, questions: data.trials.questions, debriefing: data.trials.debriefing, categoryNamesMap: data.trials.categoryNamesMap}, subjCode, workerId, assignmentId, hitId, FULLSCREEN, PORT);
+                runExperiment(data.trials, subjCode, workerId, assignmentId, hitId, FULLSCREEN, PORT);
     
             }
         })
