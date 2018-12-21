@@ -100,7 +100,7 @@ if (fs.existsSync(batchesCountProdPath)) {
   // Create new csv of category counts if doesn't exist.
   // Get all categories from image folders.
   fs.readdirSync(path.join("word_to_rate")).forEach(file => {
-    batchesCount.prod[path.join("word_to_rate", file)] = 0;
+    batchesCount.prod[path.join("word_to_rate", file.split(".")[0])] = 0;
   });
   writer = csvWriter({ headers: Object.keys(batchesCount.prod) });
   writer.pipe(fs.createWriteStream(batchesCountProdPath, { flags: "a" }));
