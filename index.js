@@ -176,11 +176,11 @@ app.post("/trials", function(req, res) {
       Number(a[1]) < Number(c[1]) ? a : c
     )[0];
 
-    fs.copyFileSync(path.resolve(__dirname, `${batchFile}.csv`), trialsPath);
+    // fs.copyFileSync(path.resolve(__dirname, `${batchFile}.csv`), trialsPath);
 
-    const trials = [];
+    let trials = [];
     csv()
-      .fromFile(trialsPath)
+      .fromFile(path.resolve(__dirname, `${batchFile}.csv`))
       .on("json", jsonObj => {
         trials.push(jsonObj);
       })
@@ -197,6 +197,13 @@ app.post("/trials", function(req, res) {
 
         writer.pipe(fs.createWriteStream(batchesCountPath, { flags: "a" }));
         writer.write(batchesCount[env]);
+        writer.end();
+
+        trials = _.shuffle(trials);
+
+        writer = csvWriter({ headers: Object.keys(trials[0]) });
+        writer.pipe(fs.createWriteStream(trialsPath, { flags: "a" }));
+        trials.forEach(trial => writer.write(trial));
         writer.end();
 
         console.log(trials);
