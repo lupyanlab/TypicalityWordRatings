@@ -92,7 +92,7 @@ export function runExperiment(
 
     let stimulus = /*html*/ `
       <h4 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h4>
-      <div style="padding:10%;"><h1>${trial.question_prompt_pre}${trial.word}${trial.question_prompt_post}</h1></div>
+      <div style="padding:10%;"><h1>${trial.question_prompt_pre}<br />${trial.word}${trial.question_prompt_post}</h1></div>
   `;
 
     const choices = [trial.choice1, trial.choice2, trial.choice3, trial.choice4, trial.choice5];
