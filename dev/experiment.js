@@ -57,10 +57,14 @@ export function runExperiment(
     key_forward: "space",
     key_backward: "backspace",
     pages: [
-      /*html*/ `<p class="lead">In this HIT, you will see various images of familiar objects. For each image, please rate how typical it is of its category.
-            For example, you may be shown a series of motorcycles and asked how typical each one is of motorcyles in general.
-            </p> <p class="lead">Use the  1-5 keys on the keyboard to respond. 1 means very typical. 5 means very atypical. Please try to use the entire scale, not just the 1/5 keys. If you rush through without attending to the images, we may deny payment.
-            </p> ${continue_space}`
+      /*html*/ `<p class="lead">You will be asked to rate the "genderness" of about 100 common English words.<br>
+      Some words have "natural" gender, e.g. "he" and "brother" generally refer to men.<br>
+      Other words have no "natural" gender, but may be associated with a gender.<br>
+      For example, you may think that "flowers" are a relatively feminine word. <br>
+      Please use your intuitions to rate each word you see.  <br>
+      Any words that refer to people's names will be capitalized. The meaning of words with ambiguous meanings will be clarified.<br>
+      Use the keys 1-5 to respond. Please try to use the entire scale, from "Very feminine" to "Very masculine"<br>
+      It's ok to go with your first impression for each word, but keep in mind that inattentive responding may result in a denial of payment.</p> ${continue_space}`
     ]
   };
 
@@ -92,7 +96,7 @@ export function runExperiment(
 
     let stimulus = /*html*/ `
       <h4 style="text-align:center;margin-top:0;">Trial ${trial_number} of ${num_trials}</h4>
-      <div style="padding:10%;"><h1>${trial.question_prompt_pre}<br />${trial.word}${trial.question_prompt_post}</h1></div>
+      <div style="padding:10%;"><h1>${trial.question_prompt_pre} "${trial.word}" ${trial.question_prompt_post}</h1></div>
   `;
 
     const choices = [trial.choice1, trial.choice2, trial.choice3, trial.choice4, trial.choice5];
@@ -219,11 +223,10 @@ export function runExperiment(
 
       let endmessage = `Thank you for participating! Your completion code is ${participantID}. Copy and paste this in 
         MTurk to get paid. 
-        <p>The purpose of this HIT is to assess the extent to which different people agree what makes
-        a particular dog, cat, or car typical.
+        <p>The purpose of this HIT is to obtain gender ratings for various words to better understand how gender information is represented in children's books.
         
         <p>
-        If you have any questions or comments, please email cschonberg@wisc.edu.`;
+        If you have any questions or comments, please email lupyan@wisc.edu.`;
       jsPsych.endExperiment(endmessage);
     }
   };
