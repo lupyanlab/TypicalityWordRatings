@@ -2,30 +2,25 @@
 
 You must have nodjs installed: https://nodejs.org. Make sure Python 2 is installed.
 
-```
-git clone https://github.com/kmui2/Image-Similarity-Experiment
-cd TypicalityWordRatingsExperiment
-sudo npm install -g nodemon
+The following are instructions to download and install the repo.
+
+```sh
+git clone https://github.com/lupyanlab/TypicalityWordRatings
+cd TypicalityWordRatings
 npm install
-npm start
+pm2 start index.js --name TypicalityWordRatings
 ```
 
-When making changes, the html and javascript is in the dev/ directory. To make sure the prod/ (production) directory is
-updated while editing the dev/ directory, install gulp taskrunner globally and run the gulp watch command. 
+If you are working on your local machinese, go to http://localhost:7100.
 
-```
-sudo npm install -g gulp
-gulp watch
-```
+If you are working on Sapir, go to http://sapir.psych.wisc.edu/mturk/TypicalityWordRatings/dev.
 
-If you just need to build prod/ , then just call either of these commands:
+The static HTML, CSS, and JavaScript files are in the `dev/` directory, and the Node.js API server is located in the root `./index.js` file.
 
-```
-gulp prod
-```
 
-```
-npm prod
+When you are done, run the following command on Sapir and go to http://sapir.psych.wisc.edu/mturk/TypicalityWordRatings/prod.
+
+```sh
+npm run prod
 ```
 
-Then, go to http://localhost:7071
