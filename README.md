@@ -1,5 +1,3 @@
-## Running Locally
-
 You must have nodjs installed: https://nodejs.org. Make sure Python 2 is installed.
 
 The following are instructions to download and install the repo.
